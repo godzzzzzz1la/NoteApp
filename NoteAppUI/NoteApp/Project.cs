@@ -72,5 +72,6 @@ namespace NoteApp
                 _currentNote = value;
             }
         }
+        public int CurrentInd { get; set; } = -1;
     }
 }

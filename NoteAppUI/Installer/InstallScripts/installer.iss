@@ -4,7 +4,7 @@
 #define MyAppName "NoteApp"
 #define MyAppVersion "1.0"
 #define MyAppPublisher"Menshikov Andrey"
-#define MyAppURL "https://github.com/"godzzzzzz1la"
+#define MyAppURL "https://github.com/godzzzzzz1la"
 #define MyAppExeName "NoteAppUI.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".myp"
@@ -29,7 +29,7 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 OutputDir="Installers"
 OutputBaseFilename=NoteAppSetup
-SetupIconFile="..\..\NoteAppUI\icons\{#NoteApp}"
+SetupIconFile="..\..\NoteAppUI\icon.ico"
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

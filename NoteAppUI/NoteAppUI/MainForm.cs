@@ -35,6 +35,9 @@ namespace NoteAppUI
             HeadNoteCategoryComboBox.Items.Add(NoteCategory.Other);
             HeadNoteCategoryComboBox.Items.Add("All");
             HeadNoteCategoryComboBox.SelectedIndex = 9;
+            int CurrentNote=-1;
+            TitleListBox.SelectedIndex = CurrentNote;
+
         }
 
         /// <summary>
@@ -43,8 +46,10 @@ namespace NoteAppUI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MainForm_Load(object sender, EventArgs e)
-        {
-            _project = ProjectManager.LoadFromFile(ProjectManager.FileName);
+        {//Записываем данные из файла в переменную "_project" при помощи метода LoadFromFile
+            _project = ProjectManager.LoadFromFile(@"..\NoteApp.txt");
+
+            //Проверяем значение переменной "_project"
             if (_project == null)
             {
                 _project = new Project();
@@ -52,19 +57,33 @@ namespace NoteAppUI
                 _project.CurrentNote = new Note();
             }
 
+            //Очищаем TitleListBox
             TitleListBox.Items.Clear();
+
             try
             {
                 for (var NoteNumber = 0; NoteNumber < _project.Notes.Count; NoteNumber++)
                 {
+                    //Записываем данные из списка Notes в переменную "item"
                     var item = _project.Notes[NoteNumber];
+
+                    //Записываем имя заметки из переменной "item" в TitleListBox
                     TitleListBox.Items.Add(item.Name);
                 }
+
+                //Записываем данные из свойства CurrentNote в переменную "CurrentLoadNote"
                 var CurrentLoadNote = _project.CurrentNote;
-                
+
+                NameLabel.Text = CurrentLoadNote.Name;
+                CategoryLabel.Text = CurrentLoadNote.NoteCategory.ToString();
+                NoteTextBox.Text = CurrentLoadNote.NoteText;
+                CreationDataTimePicker.Value = CurrentLoadNote.CreationTime;
+                ModifitionDateTimePicker.Value = CurrentLoadNote.ModifiedTime;
+
             }
-            catch {
-                return;
+            catch
+            {
+
             }
         }
         
@@ -320,6 +339,7 @@ namespace NoteAppUI
                     
                     if(HeadNoteCategoryComboBox.Text == "All")
                     {
+                       
                         _clicklist = _project.Notes[TitleListBox.SelectedIndex];
                         NameLabel.Text = _clicklist.Name;
                         NoteTextBox.Text = _clicklist.NoteText;
@@ -358,6 +378,21 @@ namespace NoteAppUI
                         CategoryLabel.Text = _clicklist.NoteCategory.ToString();
                         CreationDataTimePicker.Value = _clicklist.CreationTime;
                         ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
+                        _project.CurrentNote = _clicklist;
+                    }
+                    else
+                    {
+                        //Присваиваем переменной данные из списка по индексу
+                        _clicklist = _project.SortedResult[TitleListBox.SelectedIndex];
+
+
+                        //Присваиваем полям значения из переменной списка
+                        NameLabel.Text = _clicklist.Name;
+                        NoteTextBox.Text = _clicklist.NoteText;
+                        CategoryLabel.Text = _clicklist.NoteCategory.ToString();
+                        CreationDataTimePicker.Value = _clicklist.CreationTime;
+                        ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
+
                         _project.CurrentNote = _clicklist;
                     }
                     ProjectManager.SaveToFile(_project, ProjectManager.FileName);
