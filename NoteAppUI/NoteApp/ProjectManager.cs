@@ -6,24 +6,18 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.IO;
 
-
 namespace NoteApp
 {
     /// <summary>
-    /// Класс ProjectManager, отвечает за загрузку и выгрузка данных из файла
+    /// Класс "Менеджер Проекта", отвечающий за загрузку и выгрузку данных из файла
     /// </summary>
     public static class ProjectManager
     {
         /// <summary>
-        /// Константа, указывающая путь к файлу
+        /// Возвращает и задает путь по умолчанию к файлу>. 
         /// </summary>
-        public static readonly string FolderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-        + "\\NoteApp\\";
-
-        /// <summary>
-        /// Константа, указывающая имя файла
-        /// </summary>
-        public static  string FileName { get; } = FolderPath + "NoteApp.notes";
+        public static string FilePath { get; set; } = Environment.GetFolderPath(
+            Environment.SpecialFolder.ApplicationData) + @"\NoteApp\NoteApp.notes";
 
         /// <summary>
         /// Метод сохранения данных в файл

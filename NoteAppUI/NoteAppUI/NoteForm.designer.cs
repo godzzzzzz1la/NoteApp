@@ -190,6 +190,7 @@ namespace NoteAppUI
             this.Name = "NoteForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Add/Edit Note";
+            this.Load += new System.EventHandler(this.NoteForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

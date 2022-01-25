@@ -19,110 +19,140 @@ namespace NoteAppUI
         /// <summary>
         /// Поле, содержащее список заметок
         /// </summary>
-        private Project _project = new Project();
-        List<Note> list = new List<Note>();                   
+        private Project project { get; set; }
+        /// <summary>
+        /// Список отсортированных заметок
+        /// </summary>
+        private List<Note> NotesSort { get; set; }
+
+        /// <summary>
+        /// Конструктор класса
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
-            HeadNoteCategoryComboBox.Items.Add("New");
-            HeadNoteCategoryComboBox.Items.Add("Old");
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.Documents);
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.Finance);
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.HealthAndSports);
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.Home);
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.People);
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.Work);
-            HeadNoteCategoryComboBox.Items.Add(NoteCategory.Other);
+            project = ProjectManager.LoadFromFile(ProjectManager.FilePath);
+            NotesSort = new List<Note>();
+            UpdateListBox();
+            var categories = Enum.GetValues(typeof(NoteCategory)).Cast<object>().ToArray();
             HeadNoteCategoryComboBox.Items.Add("All");
-            HeadNoteCategoryComboBox.SelectedIndex = 9;
-            int CurrentNote=-1;
-            TitleListBox.SelectedIndex = CurrentNote;
+            HeadNoteCategoryComboBox.Items.AddRange(categories);
+            HeadNoteCategoryComboBox.SelectedIndex = 0;
+            if (project.CurrentNote == -1)
+                Clear();
+            else
+                TitleListBox.SelectedIndex = project.CurrentNote;
+        }
+
+        /// <summary>
+        /// Метод, который обновляет список заметок в листбоксе
+        /// </summary>
+        void UpdateListBox()
+        {
+            
+            TitleListBox.Items.Clear();
+            if ((HeadNoteCategoryComboBox.Text == "All"))
+            {
+                project.Notes = project.SortList();
+                for (int i = 0; i < project.Notes.Count; i++)
+                {
+                    TitleListBox.Items.Add(project.Notes[i].Name);
+                }
+            }
+            else
+            {
+                var category = (NoteCategory)HeadNoteCategoryComboBox.SelectedIndex - 1;
+                NotesSort = project.SortList(category);
+                for (int i = 0; i < NotesSort.Count; i++)
+                {
+                    TitleListBox.Items.Add(NotesSort[i].Name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Метод очищения формы
+        /// </summary>
+        void Clear()
+        {
+            NameLabel.Text = "";
+            CategoryLabel.Text = "";
+            CreationDataTimePicker.Value = DateTime.Now;
+            ModifitionDateTimePicker.Value = DateTime.Now;
+            NoteTextBox.Text = "";
+        }
+
+        /// <summary>
+        ///  Метод, для отображения информации заметки
+        /// </summary>
+        private void ShowNoteInfo()
+        {
+            var showProject = HeadNoteCategoryComboBox.Text == "All" ? project.Notes : NotesSort;
+            var note = showProject[TitleListBox.SelectedIndex];
+            NameLabel.Text = note.Name;
+            NoteTextBox.Text = note.Text;
+            CreationDataTimePicker.Value = note.CreatedTime;
+            ModifitionDateTimePicker.Value = note.ModifiedTime;
+            CategoryLabel.Text = note.Category.ToString();
 
         }
 
         /// <summary>
-        /// Метод для записи данных в переменную _project при помощи метода LoadFromFile
+        /// Событие, для установки значения индекса заметки
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MainForm_Load(object sender, EventArgs e)
-        {//Записываем данные из файла в переменную "_project" при помощи метода LoadFromFile
-            _project = ProjectManager.LoadFromFile(@"..\NoteApp.txt");
-
-            //Проверяем значение переменной "_project"
-            if (_project == null)
-            {
-                _project = new Project();
-                _project.Notes = new List<Note>();
-                _project.CurrentNote = new Note();
-            }
-
-            //Очищаем TitleListBox
-            TitleListBox.Items.Clear();
-
+        private void NotesListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
             try
             {
-                for (var NoteNumber = 0; NoteNumber < _project.Notes.Count; NoteNumber++)
+                if (TitleListBox.SelectedIndex == -1)
                 {
-                    //Записываем данные из списка Notes в переменную "item"
-                    var item = _project.Notes[NoteNumber];
-
-                    //Записываем имя заметки из переменной "item" в TitleListBox
-                    TitleListBox.Items.Add(item.Name);
+                    return;
                 }
-
-                //Записываем данные из свойства CurrentNote в переменную "CurrentLoadNote"
-                var CurrentLoadNote = _project.CurrentNote;
-
-                NameLabel.Text = CurrentLoadNote.Name;
-                CategoryLabel.Text = CurrentLoadNote.NoteCategory.ToString();
-                NoteTextBox.Text = CurrentLoadNote.NoteText;
-                CreationDataTimePicker.Value = CurrentLoadNote.CreationTime;
-                ModifitionDateTimePicker.Value = CurrentLoadNote.ModifiedTime;
-
+                ShowNoteInfo();
             }
-            catch
+            catch (Exception ex)
             {
-
+                MessageBox.Show(ex.Message);
             }
         }
-        
-       
         /// <summary>
         /// Метод для создания заметки
         /// </summary>
         private void EditNote()
         {
-            try
+            if (TitleListBox.SelectedIndex != -1)
             {
-                var selectedIndex = TitleListBox.SelectedIndex;
-                var selectedNotes = _project.Notes[selectedIndex];
-                var edit = new NoteForm();
-                edit.CurrentNote = selectedNotes;
-                edit.ShowDialog();
-                var updateNote = edit.CurrentNote;
-                TitleListBox.Items.RemoveAt(selectedIndex);
-                _project.Notes.RemoveAt(selectedIndex);
-                _project.Notes.Insert(selectedIndex, updateNote);
-                var MainName = edit.CurrentNote.Name;
-                var MainCategory = edit.CurrentNote.NoteCategory;
-                var MainText = edit.CurrentNote.NoteText;
-                var MainModifiedDate = edit.CurrentNote.ModifiedTime;
-                TitleListBox.Items.Insert(selectedIndex, MainName);
+                var showProject = HeadNoteCategoryComboBox.Text == "All" ? project.Notes : NotesSort;
 
-                if (edit.DialogResult == DialogResult.OK)
+                NoteForm form = new NoteForm();
+                form.CurrentNote = showProject[TitleListBox.SelectedIndex];
+
+                if (form.ShowDialog() == DialogResult.OK)
                 {
-                    NameLabel.Text = MainName;
-                    NoteTextBox.Text = MainText;
-                    CategoryLabel.Text = MainCategory.ToString();
-                    ModifitionDateTimePicker.Value = MainModifiedDate;
+                    showProject[TitleListBox.SelectedIndex].Name = form.CurrentNote.Name;
+                    showProject[TitleListBox.SelectedIndex].Text = form.CurrentNote.Text;
+                    showProject[TitleListBox.SelectedIndex].Category = form.CurrentNote.Category;
+                    showProject[TitleListBox.SelectedIndex].ModifiedTime = form.CurrentNote.ModifiedTime;
+                    UpdateListBox();
+                    if (TitleListBox.Items.Count > 0)
+                    {
+                        TitleListBox.SelectedIndex = 0;
+                    }
+                    else
+                    {
+                        Clear();
+                        return;
+                    }
+
+                    ShowNoteInfo();
+                    ProjectManager.SaveToFile(project, ProjectManager.FilePath);
                 }
-                ProjectManager.SaveToFile(_project, ProjectManager.FileName);
-            }
-            catch
-            {
-                DialogResult result = MessageBox.Show("Вы не выбрали заметку!", "Ошибка", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                this.Show();
+                else
+                {
+                    MessageBox.Show("Note not selected!");
+                }
             }
         }
 
@@ -131,27 +161,34 @@ namespace NoteAppUI
         /// </summary>
         private void DeleteNote()
         {
-            try
+            if (TitleListBox.SelectedIndex != -1)
             {
-                HeadNoteCategoryComboBox.Text = "All";
-                DialogResult result = MessageBox.Show("Действительно хотите удалить заметку?", "Удаление", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                if(result == DialogResult.OK)
+                DialogResult result = MessageBox.Show("Do you want to remove this note: " +
+                                                      project.Notes[TitleListBox.SelectedIndex].Name + "",
+                    "Remove Note", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+
+                if (result == DialogResult.OK)
                 {
-                    var selectedIndex = TitleListBox.SelectedIndex;
-                    var selectedNote = _project.Notes[selectedIndex];
-                    TitleListBox.Items.RemoveAt(selectedIndex);
-                    _project.Notes.RemoveAt(selectedIndex);
-                    
-                    NameLabel.Text = " ";
-                    NoteTextBox.Text = " " ;
-                    CategoryLabel.Text = " ";
-                    ProjectManager.SaveToFile(_project, ProjectManager.FileName);
-                }            
+                    project.Notes.RemoveAt(TitleListBox.SelectedIndex);
+                    UpdateListBox();
+                    if (TitleListBox.Items.Count > 0)
+                    {
+                        TitleListBox.SelectedIndex = 0;
+                    }
+                    else if (TitleListBox.Items.Count == 0)
+                    {
+                        Clear();
+                    }
+                }
+                if (result == DialogResult.Cancel)
+                {
+                    DialogResult = DialogResult.Cancel;
+                }
+                ProjectManager.SaveToFile(project, ProjectManager.FilePath);
             }
-            catch
+            else
             {
-                DialogResult result = MessageBox.Show("Вы не выбрали заметку!", "Ошибка", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                this.Show();
+                MessageBox.Show("Note not selected!");
             }
         }      
         
@@ -162,46 +199,7 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void DeleteCurrentNoteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (HeadNoteCategoryComboBox.Text == "All")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "New")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Old")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Documents")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Finance")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "HealthAndSports")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Home")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "People")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Work")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Other")
-            {
-                DeleteNote();
-            }            
+                DeleteNote();               
         }
 
         /// <summary>
@@ -224,46 +222,7 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void EditNoteButton_Click(object sender, EventArgs e)
         {
-            if (HeadNoteCategoryComboBox.Text == "All")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "New")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Old")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Documents")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Finance")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "HealthAndSports")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Home")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "People")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Work")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Other")
-            {
-                EditNote();
-            }
+            EditNote();
         }
 
         /// <summary>
@@ -273,54 +232,8 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void DeleteNoteButton_Click(object sender, EventArgs e)
         {
-            if (HeadNoteCategoryComboBox.Text == "All")
-            {
                 DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "New")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Old")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Documents")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Finance")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "HealthAndSports")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Home")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "People")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Work")
-            {
-                DeleteNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Other")
-            {
-                DeleteNote();
-            }
-            else
-            {
-                DialogResult result = MessageBox.Show("Выберите, пожалуйста, категорию All", "Ошибка", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                if (result == DialogResult.OK)
-                {
-                    HeadNoteCategoryComboBox.Text = "All";
-                }
-            }
+           
         }
 
         /// <summary>
@@ -328,80 +241,19 @@ namespace NoteAppUI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void NotesListBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void TitleListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
             {
-                var Form = new Note();
-                if(TitleListBox.SelectedIndex >= 0)
+                if (TitleListBox.SelectedIndex == -1)
                 {
-                    Note _clicklist;    
-                    
-                    if(HeadNoteCategoryComboBox.Text == "All")
-                    {
-                       
-                        _clicklist = _project.Notes[TitleListBox.SelectedIndex];
-                        NameLabel.Text = _clicklist.Name;
-                        NoteTextBox.Text = _clicklist.NoteText;
-                        CategoryLabel.Text = _clicklist.NoteCategory.ToString();
-                        CreationDataTimePicker.Value = _clicklist.CreationTime;
-                        ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
-                        _project.CurrentNote = _clicklist;
-                    }
-                    else if (HeadNoteCategoryComboBox.Text == "New")
-                    {
-
-                        _clicklist = _project.Notes[TitleListBox.SelectedIndex];
-                        NameLabel.Text = _clicklist.Name;
-                        NoteTextBox.Text = _clicklist.NoteText;
-                        CategoryLabel.Text = _clicklist.NoteCategory.ToString();
-                        CreationDataTimePicker.Value = _clicklist.CreationTime;
-                        ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
-                        _project.CurrentNote = _clicklist;
-                    }
-                    else if (HeadNoteCategoryComboBox.Text == "New")
-                    {
-
-                        _clicklist = _project.Notes[TitleListBox.SelectedIndex];
-                        NameLabel.Text = _clicklist.Name;
-                        NoteTextBox.Text = _clicklist.NoteText;
-                        CategoryLabel.Text = _clicklist.NoteCategory.ToString();
-                        CreationDataTimePicker.Value = _clicklist.CreationTime;
-                        ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
-                        _project.CurrentNote = _clicklist;
-                    }
-                    else if (HeadNoteCategoryComboBox.Text == "Old")
-                    {
-                        _clicklist = _project.Notes[TitleListBox.SelectedIndex];
-                        NameLabel.Text = _clicklist.Name;
-                        NoteTextBox.Text = _clicklist.NoteText;
-                        CategoryLabel.Text = _clicklist.NoteCategory.ToString();
-                        CreationDataTimePicker.Value = _clicklist.CreationTime;
-                        ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
-                        _project.CurrentNote = _clicklist;
-                    }
-                    else
-                    {
-                        //Присваиваем переменной данные из списка по индексу
-                        _clicklist = _project.SortedResult[TitleListBox.SelectedIndex];
-
-
-                        //Присваиваем полям значения из переменной списка
-                        NameLabel.Text = _clicklist.Name;
-                        NoteTextBox.Text = _clicklist.NoteText;
-                        CategoryLabel.Text = _clicklist.NoteCategory.ToString();
-                        CreationDataTimePicker.Value = _clicklist.CreationTime;
-                        ModifitionDateTimePicker.Value = _clicklist.ModifiedTime;
-
-                        _project.CurrentNote = _clicklist;
-                    }
-                    ProjectManager.SaveToFile(_project, ProjectManager.FileName);
-                }               
-               
+                    return;
+                }
+                ShowNoteInfo();
             }
-            catch
+            catch (Exception ex)
             {
-                this.Show();
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -412,82 +264,17 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void HeadNoteCategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(HeadNoteCategoryComboBox.Text == "New")
+            UpdateListBox();
+            if (TitleListBox.Items.Count > 0)
             {
-                TitleListBox.Items.Clear();
-                _project.SortedModifiedTimeNew();
-                for(var ForTimeNew = 0; ForTimeNew< _project.Notes.Count; ForTimeNew++)
-                {
-                    var Data = _project.Notes[ForTimeNew];
-                    TitleListBox.Items.Add(Data.Name);
-                }
+                TitleListBox.SelectedIndex = 0;
             }
-            else if(HeadNoteCategoryComboBox.Text == "Old")
+            if (TitleListBox.Items.Count == 0)
             {
-                TitleListBox.Items.Clear();
-                _project.SortedModifiedTimeOld();
-                for (var ForTimeOld = 0; ForTimeOld < _project.Notes.Count; ForTimeOld++)
-                {
-                    var Data = _project.Notes[ForTimeOld];
-                    TitleListBox.Items.Add(Data.Name);
-                }
+                Clear();
             }
-            else if(HeadNoteCategoryComboBox.Text == "Documents")
-            {
-                SortedCategory();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Finance")
-            {
-                SortedCategory();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Work")
-            {
-                SortedCategory();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "People")
-            {
-                SortedCategory();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "HealthAndSports")
-            {
-                SortedCategory();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Home")
-            {
-                SortedCategory();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Other")
-            {
-                SortedCategory();
-            }
-            else if(HeadNoteCategoryComboBox.Text == "All")
-            {
-                TitleListBox.Items.Clear();
-                for(var i=0; i< _project.Notes.Count; i++)
-                {
-                    var Data = _project.Notes[i];
-                    TitleListBox.Items.Add(Data.Name);
-                }
-               
-            }
-
         }
-
-        /// <summary>
-        /// Метод для сортировки категорий заметки
-        /// </summary>
-        public void SortedCategory()
-        {
-            var category = (NoteCategory)HeadNoteCategoryComboBox.SelectedItem;
-            _project.SortedNoteForNoteCategory(category);
-            TitleListBox.Items.Clear();
-            for(var i = 0; i < _project.SortedResult.Count; i++)
-            {
-                var DataSortedResult = _project.SortedResult[i];
-                TitleListBox.Items.Add(DataSortedResult.Name);
-            }
-
-        }
+    
 
         /// <summary>
         /// Кнопка для создания заметки
@@ -506,46 +293,7 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void EditCurrentNoteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (HeadNoteCategoryComboBox.Text == "All")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "New")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Old")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Documents")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Finance")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "HealthAndSports")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Home")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "People")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Work")
-            {
-                EditNote();
-            }
-            else if (HeadNoteCategoryComboBox.Text == "Other")
-            {
-                EditNote();
-            }           
+            EditNote();
         }
 
         /// <summary>
@@ -553,19 +301,14 @@ namespace NoteAppUI
         /// </summary>
         private void CreateFunction()
         {
-            HeadNoteCategoryComboBox.Text = "All";
-            var form = new NoteForm();
-            form.ShowDialog();
-            if (form.DialogResult == DialogResult.OK)
+            NoteForm form = new NoteForm();
+            if (form.ShowDialog() == DialogResult.OK)
             {
-                var MainName = form.CurrentNote.Name;
-                var MainCategory = form.CurrentNote.NoteCategory;
-                var MainText = form.CurrentNote.NoteCategory;
-                var MainCreatedTime = form.CurrentNote.CreationTime;
-                var MainModifiedTime = form.CurrentNote.ModifiedTime;
-                TitleListBox.Items.Add(MainName);
-                _project.Notes.Add(form.CurrentNote);
-                ProjectManager.SaveToFile(_project, ProjectManager.FileName);
+                project.Notes.Add(form.CurrentNote);
+                UpdateListBox();
+                if (TitleListBox.Items.Count > 0)
+                    TitleListBox.SelectedIndex = 0;
+                ProjectManager.SaveToFile(project, ProjectManager.FilePath);
             }
         }
 
@@ -576,7 +319,19 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void СreateNewNoteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CreateFunction();
+           CreateFunction();
+        }
+
+        private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            project.CurrentNote = TitleListBox.SelectedIndex;
+            ProjectManager.SaveToFile(project, ProjectManager.FilePath);
+            Application.Exit();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

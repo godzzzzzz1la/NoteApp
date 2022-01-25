@@ -82,6 +82,7 @@ namespace NoteAppUI
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
             this.ExitToolStripMenuItem.Size = new System.Drawing.Size(116, 26);
             this.ExitToolStripMenuItem.Text = "Exit";
+            this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -96,21 +97,21 @@ namespace NoteAppUI
             // СreateNewNoteToolStripMenuItem
             // 
             this.СreateNewNoteToolStripMenuItem.Name = "СreateNewNoteToolStripMenuItem";
-            this.СreateNewNoteToolStripMenuItem.Size = new System.Drawing.Size(220, 26);
+            this.СreateNewNoteToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.СreateNewNoteToolStripMenuItem.Text = "Create a new note";
             this.СreateNewNoteToolStripMenuItem.Click += new System.EventHandler(this.СreateNewNoteToolStripMenuItem_Click);
             // 
             // EditCurrentNoteToolStripMenuItem
             // 
             this.EditCurrentNoteToolStripMenuItem.Name = "EditCurrentNoteToolStripMenuItem";
-            this.EditCurrentNoteToolStripMenuItem.Size = new System.Drawing.Size(220, 26);
+            this.EditCurrentNoteToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.EditCurrentNoteToolStripMenuItem.Text = "Edit current note";
             this.EditCurrentNoteToolStripMenuItem.Click += new System.EventHandler(this.EditCurrentNoteToolStripMenuItem_Click);
             // 
             // DeleteCurrentNoteToolStripMenuItem
             // 
             this.DeleteCurrentNoteToolStripMenuItem.Name = "DeleteCurrentNoteToolStripMenuItem";
-            this.DeleteCurrentNoteToolStripMenuItem.Size = new System.Drawing.Size(220, 26);
+            this.DeleteCurrentNoteToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.DeleteCurrentNoteToolStripMenuItem.Text = "Delete current note";
             this.DeleteCurrentNoteToolStripMenuItem.Click += new System.EventHandler(this.DeleteCurrentNoteToolStripMenuItem_Click);
             // 
@@ -148,7 +149,7 @@ namespace NoteAppUI
             this.TitleListBox.Name = "TitleListBox";
             this.TitleListBox.Size = new System.Drawing.Size(286, 468);
             this.TitleListBox.TabIndex = 2;
-            this.TitleListBox.SelectedIndexChanged += new System.EventHandler(this.NotesListBox_SelectedIndexChanged);
+            this.TitleListBox.SelectedIndexChanged += new System.EventHandler(this.TitleListBox_SelectedIndexChanged);
             // 
             // CreationDataTimePicker
             // 

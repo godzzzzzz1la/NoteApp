@@ -20,43 +20,14 @@ namespace NoteAppUI
         /// <summary>
         /// Поле текущей заметки
         /// </summary>
-        private Note _currentNote = new Note();
+        public Note CurrentNote { get; set; }
 
-        /// <summary>
-        /// Свойство для поля текущей заметки
-        /// </summary>
-        public Note CurrentNote
-        {
-            get
-            {
-                return _currentNote;
-            }
-            set
-            {
-                _currentNote = value;
-                if(_currentNote != null)
-                {
-                    AddNameTextBox.Text = _currentNote.Name;
-                    AddCategoryComboBox.Text = _currentNote.NoteCategory.ToString();
-                    AddTextNoteTextBox.Text = _currentNote.NoteText;
-                    CreateDateTimePicker.Value = _currentNote.CreationTime;
-                    ModifyDateTimePicker.Value = _currentNote.ModifiedTime;
-                }
-            }
-        }        
-        /// <summary>
-        /// Конструктор формы
-        /// </summary>
         public NoteForm()
         {
             InitializeComponent();
-            AddCategoryComboBox.Items.Add(NoteCategory.Documents);
-            AddCategoryComboBox.Items.Add(NoteCategory.Finance);
-            AddCategoryComboBox.Items.Add(NoteCategory.Work);
-            AddCategoryComboBox.Items.Add(NoteCategory.People);
-            AddCategoryComboBox.Items.Add(NoteCategory.HealthAndSports);
-            AddCategoryComboBox.Items.Add(NoteCategory.Home);
-            AddCategoryComboBox.Items.Add(NoteCategory.Other);
+            var categories = Enum.GetValues(typeof(NoteCategory)).Cast<object>().ToArray();
+            AddCategoryComboBox.Items.AddRange(categories);
+            AddCategoryComboBox.SelectedIndex = 0;
         }
                    
         
@@ -68,27 +39,35 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void OkButton_Click(object sender, EventArgs e)
         {
-            if (AddNameTextBox.TextLength <= 50)
+            try
             {
-                this.DialogResult = DialogResult.OK;
-
-                Note note = new Note();
-                Project project = new Project();
-
-                _currentNote.Name = AddNameTextBox.Text;
-                _currentNote.NoteText = AddTextNoteTextBox.Text;
-                _currentNote.NoteCategory = (NoteCategory)AddCategoryComboBox.SelectedItem;
-                _currentNote.CreationTime = CreateDateTimePicker.Value;
-                _currentNote.ModifiedTime = ModifyDateTimePicker.Value;
-                this.Close();
+                if (AddCategoryComboBox.SelectedIndex != -1)
+                {
+                    var currentCategory = (NoteCategory)AddCategoryComboBox.SelectedIndex;
+                    CurrentNote = new Note(AddNameTextBox.Text, AddTextNoteTextBox.Text, currentCategory);
+                    DialogResult = DialogResult.OK;
+                }
+                else
+                {
+                    MessageBox.Show("Note category not selected!");
+                }
             }
-            else
+            catch (ArgumentException ex)
             {
-                DialogResult result = MessageBox.Show("Длина имени заметки должна быть меньше либо равна 50 символам!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Show();
+                MessageBox.Show(ex.Message);
             }
         }
-
+        /// <summary>
+        /// Метод, для заполнения элементов информацией о текущей заметке
+        /// </summary>
+        private void ShowNoteInfo()
+        {
+            AddNameTextBox.Text = CurrentNote.Name;
+            AddTextNoteTextBox.Text = CurrentNote.Text;
+            AddCategoryComboBox.Text = CurrentNote.Category.ToString();
+            CreateDateTimePicker.Value = CurrentNote.CreatedTime;
+            ModifyDateTimePicker.Value = CurrentNote.ModifiedTime;
+        }
         /// <summary>
         ///  Кнопка "отмена"
         /// </summary>
@@ -96,8 +75,7 @@ namespace NoteAppUI
         /// <param name="e"></param>
         private void CancelButton_Click(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show("Действительно хотите отменить редактирование?", "Отмена", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-            if (result == DialogResult.OK) { this.Close(); }
+            this.Close();
         }
 
        
@@ -125,7 +103,14 @@ namespace NoteAppUI
             {
                 this.Show();
             }
-        }            
-      
+        }
+
+        private void NoteForm_Load(object sender, EventArgs e)
+        {
+            if (CurrentNote != null)
+            {
+                ShowNoteInfo();
+            }
+        }
     }
 }

@@ -79,11 +79,11 @@ namespace NoteApp.UnitTests
         {
             // Setup
             var note = new Note();
-            NoteCategory expected = NoteCategory.Other;
-            note.NoteCategory = expected;
+            var expected = NoteCategory.Other;
+            note.Category = expected;
 
             // Act
-            var actual = note.NoteCategory;
+            var actual = note.Category;
 
             // Assert
             Assert.AreEqual(expected, actual, "Геттер Category возвращает неправильную категорию");
@@ -97,8 +97,8 @@ namespace NoteApp.UnitTests
             var expected = NoteCategory.Other;
 
             //Act
-            note.NoteCategory = expected;
-            var actual = note.NoteCategory;
+            note.Category = expected;
+            var actual = note.Category;
 
             // Assert
             Assert.AreEqual(expected, actual, "Сеттер устанавливает неверное значение");
@@ -110,9 +110,9 @@ namespace NoteApp.UnitTests
             // Setup
             var note = new Note();
             var expected = "TextTextText";
-            note.NoteText = expected;
+            note.Text = expected;
             // Act
-            var actual = note.NoteText;
+            var actual = note.Text;
 
             // Assert
             Assert.AreEqual(expected, actual, "Геттер Text возвращает неправильную категорию");
@@ -126,8 +126,8 @@ namespace NoteApp.UnitTests
             var expected = "Text1";
 
             //Act
-            note.NoteText = expected;
-            var actual = note.NoteText;
+            note.Text = expected;
+            var actual = note.Text;
 
             // Assert
             Assert.AreEqual(expected, actual, "Сеттер устанавливает неверное значение");
@@ -139,10 +139,10 @@ namespace NoteApp.UnitTests
             // Setup
             var note = new Note();
             var expected = DateTime.Now;
-            note.CreationTime = expected;
+            note.CreatedTime = expected;
 
             // Act
-            var actual = note.CreationTime;
+            var actual = note.CreatedTime;
 
             // Assert
             Assert.AreEqual(expected, actual, "Геттер DateOfCreation возвращает неправильное время");
@@ -156,8 +156,8 @@ namespace NoteApp.UnitTests
             var expected = DateTime.Now;
 
             // Act
-            note.CreationTime = expected;
-            var actual = note.CreationTime;
+            note.CreatedTime = expected;
+            var actual = note.CreatedTime;
 
             // Assert
             Assert.AreEqual(expected, actual, "Сеттер устанавливает неверное значение");
@@ -195,6 +195,20 @@ namespace NoteApp.UnitTests
             Assert.AreEqual(expected, actual, "Сеттер устанавливает неверное значение");
         }
 
+        [Test(Description = "Тест метода Сlone()")]
+        public void Test_Clone_CorrectClone_ReturnSameValue()
+        {
+            // Setup
+            var note = new Note();
+            var expected = new Note("Name1","Text1",NoteCategory.People);
+
+            // Act
+            var actual = (Note)expected.Clone();
+
+            // Assert
+            Assert.AreEqual(expected, actual);
+        }
+
         [Test(Description = "Тест конструктора")]
         [TestCase("Name1", "Text1", NoteCategory.Work)]
         public void Test_Constructore_SetsCorrectValue(string expectedName, string expectedText, 
@@ -208,8 +222,8 @@ namespace NoteApp.UnitTests
 
             // Setup
             Assert.AreEqual(expectedName, note.Name);
-            Assert.AreEqual(expectedText, note.NoteText);
-            Assert.AreEqual(expectedCategory, note.NoteCategory);
+            Assert.AreEqual(expectedText, note.Text);
+            Assert.AreEqual(expectedCategory, note.Category);
         }
     }
 }

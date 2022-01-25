@@ -117,9 +117,9 @@ namespace NoteApp.UnitTests
             expectedProject.Notes.Add(new Note()
             {
                 Name = "note1",
-                NoteText = "text1",
-                NoteCategory = NoteCategory.Other,
-                CreationTime = new DateTime(2022, 01, 19),
+                Text = "text1",
+                Category = NoteCategory.Other,
+                CreatedTime = new DateTime(2022, 01, 19),
                 ModifiedTime = new DateTime(2022, 01, 19)
             });
             ProjectManager.SaveToFile(expectedProject, ExpectedFileName );

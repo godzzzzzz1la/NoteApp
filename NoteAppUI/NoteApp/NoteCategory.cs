@@ -12,38 +12,32 @@ namespace NoteApp
     public enum NoteCategory
     {
         /// <summary>
-        /// Категория "Документы"
-        /// </summary>
-        Documents,
-
-        /// <summary>
-        /// Категория "Финансы"
-        /// </summary>
-        Finance,
-
-        /// <summary>
         /// Категория "Работа"
         /// </summary>
         Work,
-
-        /// <summary>
-        /// Категория "Люди"
-        /// </summary>
-        People,
-
-        /// <summary>
-        /// Категория "Здоровье"
-        /// </summary>
-        HealthAndSports,
-
         /// <summary>
         /// Категория "Дом"
         /// </summary>
         Home,
-
         /// <summary>
-        /// Категория "Прочее"
+        /// Категория "Здоровье и Спорт"
         /// </summary>
-        Other,
+        HealthAndSports,
+        /// <summary>
+        /// Категория "Люди"
+        /// </summary>
+        People,
+        /// <summary>
+        /// Категория "Документы"
+        /// </summary>
+        Documents,
+        /// <summary>
+        /// Категория "Финансы"
+        /// </summary>
+        Finance,
+        /// <summary>
+        /// Категория "Разное"
+        /// </summary>
+        Other
     }
 }
